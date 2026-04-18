@@ -79,7 +79,7 @@ def aplicar_sello_seguridad(fig):
             xref="paper", yref="paper",
             x=0.5, y=0.5,
             showarrow=False,
-            font=dict(size=35, color="rgba(150, 150, 150, 0.3)"), # Semitransparente
+            font=dict(size=35, color="rgba(150, 150, 150, 0.3)"), 
             textangle=-30,
             align="center"
         )
@@ -309,11 +309,14 @@ if archivo_subido is not None:
             var_num = c2.selectbox("Variable Numérica (A Medir - Eje Y):", num_cols)
             tipo_graf_biv = st.selectbox("Elige la gráfica de comparación:", ["Cajas y Bigotes", "Violín", "Barras de Promedios"])
             
-            if "Cajas" in tipo_graf_biv: fig_biv = px.box(df_trabajo, x=var_cat, y=var_num, color=var_cat, title=f"Comparativa de {var_num} según {var_cat}")
-            elif "Violín" in tipo_graf_biv: fig_biv = px.violin(df_trabajo, x=var_cat, y=var_num, color=var_cat, box=True, title=f"Distribución de {var_num} según {var_cat}")
+            # --- CORRECCIÓN: SE USAN PALETAS DE COLORES DISCRETAS PARA MANTENER EL COLOR ---
+            if "Cajas" in tipo_graf_biv: 
+                fig_biv = px.box(df_trabajo, x=var_cat, y=var_num, color=var_cat, title=f"Comparativa de {var_num} según {var_cat}", color_discrete_sequence=px.colors.qualitative.Pastel)
+            elif "Violín" in tipo_graf_biv: 
+                fig_biv = px.violin(df_trabajo, x=var_cat, y=var_num, color=var_cat, box=True, title=f"Distribución de {var_num} según {var_cat}", color_discrete_sequence=px.colors.qualitative.Pastel)
             else:
                 df_agrupado = df_trabajo.groupby(var_cat)[var_num].mean().reset_index()
-                fig_biv = px.bar(df_agrupado, x=var_cat, y=var_num, color=var_cat, text_auto='.2f', title=f"Promedio de {var_num} por {var_cat}")
+                fig_biv = px.bar(df_agrupado, x=var_cat, y=var_num, color=var_cat, text_auto='.2f', title=f"Promedio de {var_num} por {var_cat}", color_discrete_sequence=px.colors.qualitative.Pastel)
             
             fig_biv = aplicar_sello_seguridad(fig_biv) # Sello de Agua
             st.plotly_chart(fig_biv, use_container_width=True, config=config_graf)
@@ -382,7 +385,7 @@ if archivo_subido is not None:
                         sample_data = datos_escalados[:min(100, len(datos_escalados))]
                         fig_dendro = ff.create_dendrogram(sample_data)
                         fig_dendro.update_layout(width=800, height=500, title="Dendrograma de Similitudes")
-                        st.plotly_chart(fig_dendro, use_container_width=True)
+                        st.plotly_chart(fig_dendro, use_container_width=True, config=config_graf)
                         st.session_state.doc_data['cluster']['fig2'] = fig_dendro
                         st.session_state.doc_data['cluster']['texto'] = f"El algoritmo segmentó la base en {n_clus} grupos homogeneos, visualizados mediante nubes de puntos y dendrograma."
 
@@ -424,7 +427,8 @@ if archivo_subido is not None:
                                     if figura is not None:
                                         try:
                                             temp_img = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-                                            # Borramos la marca de agua antes de guardar para el PDF del cliente Pro
+                                            # Borramos la marca de agua antes de guardar para el PDF del cliente Pro y forzamos el color blanco de fondo
+                                            figura.update_layout(template="plotly_white")
                                             figura.layout.annotations = [] 
                                             figura.write_image(temp_img.name, width=800, height=500)
                                             doc_obj.add_picture(temp_img.name, width=Inches(6.0))
